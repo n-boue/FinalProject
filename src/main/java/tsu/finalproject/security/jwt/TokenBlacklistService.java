@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TokenBlacklistService {
 
-    private final CacheManager cacheManager;
     private static final String USER_PREFIX = "USER_";
+    private final CacheManager cacheManager;
 
     public void blacklistToken(String jwt) {
         Cache cache = cacheManager.getCache("jwt-blacklist");

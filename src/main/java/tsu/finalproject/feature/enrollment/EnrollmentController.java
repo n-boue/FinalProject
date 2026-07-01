@@ -56,8 +56,6 @@ public class EnrollmentController {
     }
 
 
-
-
     @GetMapping("/enrollments")
     @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @NonNull

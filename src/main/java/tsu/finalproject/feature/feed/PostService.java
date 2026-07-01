@@ -35,7 +35,7 @@ public class PostService {
     private final PostMapper postMapper;
     private final NotificationDispatcher notificationDispatcher;
 
-    
+
     @Transactional
     @NonNull
     public PostResponse createAnnouncement(@NonNull String authorEmail, @NonNull Long courseId, @NonNull AnnouncementRequest request) {
@@ -85,7 +85,7 @@ public class PostService {
         return postMapper.toResponse(savedPost);
     }
 
-    
+
     @Transactional
     @NonNull
     public PostResponse createAssignment(@NonNull String authorEmail, @NonNull Long courseId, @NonNull AssignmentRequest request) {
@@ -111,7 +111,7 @@ public class PostService {
 
         return postMapper.toResponse(savedPost);
     }
-    
+
     @Transactional
     @NonNull
     public PostResponse createQuiz(@NonNull String authorEmail, @NonNull Long courseId, @NonNull QuizRequest request) {
@@ -148,7 +148,7 @@ public class PostService {
 
         return postMapper.toResponse(savedPost);
     }
-    
+
     @Transactional(readOnly = true)
     @NonNull
     public Page<PostResponse> getCoursePosts(@NonNull String requestorEmail, @NonNull Long courseId, @NonNull Pageable pageable) {
@@ -188,7 +188,7 @@ public class PostService {
         return postPage.map(postMapper::toResponse);
     }
 
-    
+
     @Transactional
     public void deletePost(@NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long postId) {
         Post post = domainLookupService.getPost(postId);
@@ -204,7 +204,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    
+
     @Transactional
     @NonNull
     public PostResponse updateAnnouncement(
@@ -227,8 +227,6 @@ public class PostService {
 
         return postMapper.toResponse(savedPost);
     }
-
-
 
 
     @Transactional
@@ -254,7 +252,7 @@ public class PostService {
         return postMapper.toResponse(savedPost);
     }
 
-    
+
     @Transactional
     @NonNull
     public PostResponse updateAssignment(
@@ -280,7 +278,7 @@ public class PostService {
         return postMapper.toResponse(savedPost);
     }
 
-    
+
     @Transactional
     @NonNull
     public PostResponse updateQuiz(

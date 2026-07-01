@@ -15,8 +15,6 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
-    Optional<User> findByUniversityId(String universityId);
-
     @Query("SELECT u FROM User u WHERE " +
                    "(:role IS NULL OR u.role = :role) AND " +
                    "(:search IS NULL OR " +
@@ -27,12 +25,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findWithFilters(@Param("role") Role role, @Param("search") String search, Pageable pageable);
 
     @Query("""
-        SELECT p FROM Professor p
-        WHERE p.deactivated = false
-        AND (:search IS NULL OR
-             LOWER(p.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-             LOWER(p.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-             LOWER(p.department) LIKE LOWER(CONCAT('%', :search, '%')))
-    """)
+                SELECT p FROM Professor p
+                WHERE p.deactivated = false
+                AND (:search IS NULL OR
+                     LOWER(p.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                     LOWER(p.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                     LOWER(p.department) LIKE LOWER(CONCAT('%', :search, '%')))
+            """)
     Page<User> searchActiveProfessors(@Param("search") String search, Pageable pageable);
 }

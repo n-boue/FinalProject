@@ -29,18 +29,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // base post has no due_date. since we are using single table inheritance, we can use a native query to get around this.
     @Query(value = """
-        SELECT p.* FROM posts p 
-        INNER JOIN enrollments e ON p.course_id = e.course_id
-        WHERE e.student_id = :studentId 
-          AND e.status = 'ENROLLED'
-          AND p.post_type IN ('ASSIGNMENT', 'QUIZ') 
-          AND p.visibility IN ('PUBLIC', 'ENROLLED_ONLY')
-          AND p.due_date > :now
-          AND NOT EXISTS (
-              SELECT 1 FROM submissions s 
-              WHERE s.post_id = p.id AND s.student_id = :studentId
-          )
-        ORDER BY p.due_date ASC
-    """, nativeQuery = true)
+                SELECT p.* FROM posts p
+                INNER JOIN enrollments e ON p.course_id = e.course_id
+                WHERE e.student_id = :studentId
+                  AND e.status = 'ENROLLED'
+                  AND p.post_type IN ('ASSIGNMENT', 'QUIZ')
+                  AND p.visibility IN ('PUBLIC', 'ENROLLED_ONLY')
+                  AND p.due_date > :now
+                  AND NOT EXISTS (
+                      SELECT 1 FROM submissions s
+                      WHERE s.post_id = p.id AND s.student_id = :studentId
+                  )
+                ORDER BY p.due_date
+            """, nativeQuery = true)
     List<Post> findPendingTasksForStudent(@Param("studentId") Long studentId, @Param("now") java.time.LocalDateTime now);
 }

@@ -69,5 +69,6 @@ public class QuizGradingService {
         return new GradingResult(answers, totalScore, requiresManualGrading);
     }
 
-    public record GradingResult(List<QuizAnswer> answers, BigDecimal totalScore, boolean requiresManualGrading) {}
+    public record GradingResult(List<QuizAnswer> answers, BigDecimal totalScore, boolean requiresManualGrading) {
+    }
 }

@@ -34,7 +34,7 @@ public class SemesterController {
     public Page<SemesterResponse> getAllSemesters(Pageable pageable) {
         return semesterService.getAllSemesters(pageable);
     }
-    
+
     @GetMapping("/{id}")
     @NonNull
     public SemesterResponse getSemesterById(@PathVariable @NonNull Long id) {

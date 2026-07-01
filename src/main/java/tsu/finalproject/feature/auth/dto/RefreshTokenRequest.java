@@ -1,4 +1,5 @@
 package tsu.finalproject.feature.auth.dto;
+
 import jakarta.validation.constraints.NotBlank;
 import org.jspecify.annotations.NonNull;
 

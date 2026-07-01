@@ -18,4 +18,5 @@ public record AssignmentRequest(
 
         @NonNull @NotNull(message = "Due date is required") LocalDateTime dueDate,
         @NonNull @NotNull(message = "Max points are required") @Min(0) Integer maxPoints
-) {}
+) {
+}
