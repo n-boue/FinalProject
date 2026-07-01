@@ -25,4 +25,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
                    "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
                    "LOWER(u.universityId) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> findWithFilters(@Param("role") Role role, @Param("search") String search, Pageable pageable);
+
+    @Query("""
+        SELECT p FROM Professor p
+        WHERE p.deactivated = false
+        AND (:search IS NULL OR
+             LOWER(p.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR
+             LOWER(p.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR
+             LOWER(p.department) LIKE LOWER(CONCAT('%', :search, '%')))
+    """)
+    Page<User> searchActiveProfessors(@Param("search") String search, Pageable pageable);
 }

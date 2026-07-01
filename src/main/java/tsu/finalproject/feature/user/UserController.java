@@ -27,7 +27,6 @@ public class UserController {
     @GetMapping("/me")
     @NonNull
     public UserResponse getMyProfile(Principal principal) {
-        // principal.getName() extracts the email directly from the verified JWT
         return userService.getUserByEmail(principal.getName());
     }
 

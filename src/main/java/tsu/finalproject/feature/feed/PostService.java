@@ -1,21 +1,26 @@
 package tsu.finalproject.feature.feed;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tsu.finalproject.common.manager.DomainLookupService;
+import tsu.finalproject.feature.course.entity.Course;
 import tsu.finalproject.feature.course.security.CourseSecurityManager;
 import tsu.finalproject.feature.feed.dto.*;
 import tsu.finalproject.feature.feed.entity.*;
 import tsu.finalproject.feature.feed.enums.PostType;
 import tsu.finalproject.feature.feed.enums.PostVisibility;
 import tsu.finalproject.feature.feed.repository.PostRepository;
+import tsu.finalproject.feature.notification.NotificationDispatcher;
+import tsu.finalproject.feature.storage.Attachment;
 import tsu.finalproject.feature.storage.AttachmentManager;
-import tsu.finalproject.feature.storage.event.FileDeletionEvent;
+import tsu.finalproject.feature.storage.dto.AttachmentResponse;
+import tsu.finalproject.feature.user.entity.User;
 
 import java.util.List;
 
@@ -24,11 +29,11 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final DomainLookupService domainLookupService;
     private final CourseSecurityManager securityManager;
     private final AttachmentManager attachmentManager;
     private final PostMapper postMapper;
+    private final NotificationDispatcher notificationDispatcher;
 
     
     @Transactional
@@ -39,7 +44,7 @@ public class PostService {
 
         securityManager.verifyProfessorAuthorization(author, course);
 
-        var announcement = Material.builder()
+        var announcement = Announcement.builder()
                                    .course(course)
                                    .author(author)
                                    .title(request.title())
@@ -49,10 +54,13 @@ public class PostService {
                                    .attachments(attachmentManager.fetchAttachments(request.attachmentKeys()))
                                    .build();
 
-        return postMapper.toResponse(postRepository.save(announcement));
+        var savedPost = postRepository.save(announcement);
+        notifyStudentsOfPostCreation(courseId, course, savedPost, request.title());
+
+        return postMapper.toResponse(savedPost);
     }
 
-    
+
     @Transactional
     @NonNull
     public PostResponse createMaterial(@NonNull String authorEmail, @NonNull Long courseId, @NonNull MaterialRequest request) {
@@ -71,7 +79,10 @@ public class PostService {
                                .attachments(attachmentManager.fetchAttachments(request.attachmentKeys()))
                                .build();
 
-        return postMapper.toResponse(postRepository.save(material));
+        var savedPost = postRepository.save(material);
+        notifyStudentsOfPostCreation(courseId, course, savedPost, request.title());
+
+        return postMapper.toResponse(savedPost);
     }
 
     
@@ -95,7 +106,10 @@ public class PostService {
                                  .maxPoints(request.maxPoints())
                                  .build();
 
-        return postMapper.toResponse(postRepository.save(assignment));
+        var savedPost = postRepository.save(assignment);
+        notifyStudentsOfPostCreation(courseId, course, savedPost, request.title());
+
+        return postMapper.toResponse(savedPost);
     }
     
     @Transactional
@@ -129,7 +143,10 @@ public class PostService {
 
         quiz.setQuestions(quizQuestions);
 
-        return postMapper.toResponse(postRepository.save(quiz));
+        var savedPost = postRepository.save(quiz);
+        notifyStudentsOfPostCreation(courseId, course, savedPost, request.title());
+
+        return postMapper.toResponse(savedPost);
     }
     
     @Transactional(readOnly = true)
@@ -181,9 +198,7 @@ public class PostService {
         securityManager.verifyProfessorAuthorization(requestor, post.getCourse());
 
         if (post.getAttachments() != null) {
-            post.getAttachments().forEach(attachment ->
-                                                  eventPublisher.publishEvent(new FileDeletionEvent(attachment.getObjectKey()))
-            );
+            post.getAttachments().forEach(attachmentManager::publishDeletionEvent);
         }
 
         postRepository.delete(post);
@@ -207,10 +222,15 @@ public class PostService {
 
         attachmentManager.syncAttachments(announcement, request.attachmentKeys());
 
-        return postMapper.toResponse(postRepository.save(announcement));
+        var savedPost = postRepository.save(announcement);
+        notifyStudentsOfPostUpdate(courseId, savedPost);
+
+        return postMapper.toResponse(savedPost);
     }
 
-    
+
+
+
     @Transactional
     @NonNull
     public PostResponse updateMaterial(
@@ -228,7 +248,10 @@ public class PostService {
 
         attachmentManager.syncAttachments(material, request.attachmentKeys());
 
-        return postMapper.toResponse(postRepository.save(material));
+        var savedPost = postRepository.save(material);
+        notifyStudentsOfPostUpdate(courseId, savedPost);
+
+        return postMapper.toResponse(savedPost);
     }
 
     
@@ -251,7 +274,10 @@ public class PostService {
 
         attachmentManager.syncAttachments(assignment, request.attachmentKeys());
 
-        return postMapper.toResponse(postRepository.save(assignment));
+        var savedPost = postRepository.save(assignment);
+        notifyStudentsOfPostUpdate(courseId, savedPost);
+
+        return postMapper.toResponse(savedPost);
     }
 
     
@@ -286,8 +312,56 @@ public class PostService {
 
         quiz.getQuestions().addAll(newQuestions);
 
-        return postMapper.toResponse(postRepository.save(quiz));
+        var savedPost = postRepository.save(quiz);
+        notifyStudentsOfPostUpdate(courseId, savedPost);
+
+        return postMapper.toResponse(savedPost);
     }
+
+
+    @Transactional
+    @NonNull
+    public AttachmentResponse addAttachmentToPost(
+            @NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long postId, @NonNull MultipartFile file) {
+
+        Post post = domainLookupService.getPost(postId);
+        securityManager.verifyPostBelongsToCourse(post, courseId);
+
+        User requestor = domainLookupService.getAuthor(requestorEmail);
+        securityManager.verifyPostModificationAccess(requestor, post);
+
+        Attachment attachment = attachmentManager.uploadAndRegisterAttachment(file, "posts/" + postId, requestor);
+
+        post.getAttachments().add(attachment);
+        postRepository.save(post);
+
+        return new AttachmentResponse(
+                attachment.getId(),
+                attachment.getOriginalFileName(),
+                attachmentManager.getAttachmentUrl(attachment),
+                attachment.getSizeBytes()
+        );
+    }
+
+    @Transactional
+    public void removeAttachmentFromPost(
+            @NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long postId, @NonNull Long attachmentId) {
+
+        Post post = domainLookupService.getPost(postId);
+        securityManager.verifyPostBelongsToCourse(post, courseId);
+
+        User requestor = domainLookupService.getAuthor(requestorEmail);
+        securityManager.verifyPostModificationAccess(requestor, post);
+
+        Attachment attachment = post.getAttachments().stream()
+                                        .filter(a -> a.getId().equals(attachmentId))
+                                        .findFirst()
+                                        .orElseThrow(() -> new EntityNotFoundException("Attachment not found on this post."));
+
+        post.getAttachments().remove(attachment);
+        attachmentManager.publishDeletionEvent(attachment);
+    }
+
 
     private Post getVerifiedPost(String requestorEmail, Long courseId, Long postId) {
         Post post = domainLookupService.getPost(postId);
@@ -298,4 +372,29 @@ public class PostService {
 
         return post;
     }
+
+
+    private void notifyStudentsOfPostCreation(@NonNull Long courseId,
+                                              @NonNull Course course,
+                                              @NonNull Post savedPost,
+                                              @NonNull String postTitle) {
+        List<Long> enrolledStudentIds = domainLookupService.getEnrolledStudentIds(courseId);
+        notificationDispatcher.dispatchBulkCourseNotification(
+                enrolledStudentIds,
+                course.getTitle(),
+                "New content posted: '" + postTitle + "'",
+                String.format("/courses/%d/posts/%d", courseId, savedPost.getId())
+        );
+    }
+
+    private void notifyStudentsOfPostUpdate(@NonNull Long courseId, Post post) {
+        List<Long> enrolledStudentIds = domainLookupService.getEnrolledStudentIds(courseId);
+        notificationDispatcher.dispatchBulkCourseNotification(
+                enrolledStudentIds,
+                post.getCourse().getTitle(),
+                "Content updated: '" + post.getTitle() + "'",
+                String.format("/courses/%d/posts/%d", courseId, post.getId())
+        );
+    }
+
 }

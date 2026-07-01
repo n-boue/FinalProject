@@ -9,7 +9,9 @@ import org.springframework.util.Assert;
 import tsu.finalproject.feature.course.entity.Course;
 import tsu.finalproject.feature.enrollment.EnrollmentRepository;
 import tsu.finalproject.feature.enrollment.enums.EnrollmentStatus;
+import tsu.finalproject.feature.feed.entity.Comment;
 import tsu.finalproject.feature.feed.entity.Post;
+import tsu.finalproject.feature.submission.entity.Submission;
 import tsu.finalproject.feature.user.entity.Professor;
 import tsu.finalproject.feature.user.entity.Student;
 import tsu.finalproject.feature.user.entity.User;
@@ -78,9 +80,30 @@ public class CourseSecurityManager {
         }
     }
 
+    public void verifySubmissionModificationAccess(@NonNull User requestor, @NonNull Submission submission) {
+        if (requestor.getRole() != Role.ROLE_ADMIN) {
+            if (!submission.getStudent().getId().equals(requestor.getId())) {
+                throw new AccessDeniedException("Access denied: Only the submitting student can modify this submission.");
+            }
+        }
+    }
+
     public void verifyPostBelongsToCourse(@NonNull Post post, @NonNull Long courseId) {
         Assert.isTrue(post.getCourse().getId().equals(courseId),
                 "This post does not belong to the specified course.");
+    }
+
+    public void verifySubmissionBelongsToPost(@NonNull Post post, @NonNull Submission submission) {
+        Assert.isTrue(submission.getPost().equals(post),
+                "This submission does not belong to the given post.");
+    }
+
+    public void verifyCommentDeletionAccess(@NonNull User requestor, @NonNull Comment comment, @NonNull Course course) {
+        if (requestor.getRole() == Role.ROLE_ADMIN) return;
+
+        if (comment.getAuthor().getId().equals(requestor.getId())) return;
+
+        verifyProfessorAuthorization(requestor, course);
     }
 
     public enum AccessLevel {

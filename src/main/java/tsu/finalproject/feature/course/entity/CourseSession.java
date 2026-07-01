@@ -6,11 +6,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.UuidGenerator;
 import tsu.finalproject.feature.user.entity.Professor;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "course_sessions")
@@ -58,9 +58,9 @@ public class CourseSession {
     private String room;
 
     @NaturalId
+    @UuidGenerator
     @Column(nullable = false, unique = true, updatable = false)
-    @Builder.Default
-    private String businessKey = UUID.randomUUID().toString();
+    private String businessKey;
 
     @Override
     public boolean equals(Object o) {

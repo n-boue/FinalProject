@@ -9,10 +9,14 @@ import tsu.finalproject.feature.course.entity.Course;
 import tsu.finalproject.feature.course.entity.CourseSession;
 import tsu.finalproject.feature.course.repository.CourseRepository;
 import tsu.finalproject.feature.course.repository.CourseSessionRepository;
+import tsu.finalproject.feature.enrollment.Enrollment;
+import tsu.finalproject.feature.enrollment.EnrollmentRepository;
 import tsu.finalproject.feature.feed.entity.Post;
 import tsu.finalproject.feature.feed.repository.PostRepository;
 import tsu.finalproject.feature.semester.Semester;
 import tsu.finalproject.feature.semester.SemesterRepository;
+import tsu.finalproject.feature.submission.entity.Submission;
+import tsu.finalproject.feature.submission.repository.SubmissionRepository;
 import tsu.finalproject.feature.user.UserRepository;
 import tsu.finalproject.feature.user.entity.Professor;
 import tsu.finalproject.feature.user.entity.Student;
@@ -31,6 +35,8 @@ public class DomainLookupService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final SemesterRepository semesterRepository;
+    private final SubmissionRepository submissionRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     @NonNull
     public Course getCourse(@NonNull Long courseId) {
@@ -48,6 +54,18 @@ public class DomainLookupService {
     public Post getPost(@NonNull Long postId) {
         return postRepository.findById(postId)
                        .orElseThrow(() -> new EntityNotFoundException("Post not found with ID: " + postId));
+    }
+
+    @NonNull
+    public Submission getSubmission(@NonNull Long submissionId) {
+        return submissionRepository.findById(submissionId)
+                       .orElseThrow(() -> new EntityNotFoundException("Submission not found with ID: " + submissionId));
+    }
+
+    @NonNull
+    public Enrollment getEnrollment(@NonNull Long enrollmentId) {
+        return enrollmentRepository.findById(enrollmentId)
+                       .orElseThrow(() -> new EntityNotFoundException("Enrollment not found with ID: " + enrollmentId));
     }
 
     @NonNull
@@ -76,6 +94,11 @@ public class DomainLookupService {
             throw new IllegalArgumentException("Only students can perform this action.");
         }
         return student;
+    }
+
+    @NonNull
+    public List<Long> getEnrolledStudentIds(@NonNull Long courseId) {
+        return enrollmentRepository.findEnrolledStudentIdsByCourseId(courseId);
     }
 
     @NonNull

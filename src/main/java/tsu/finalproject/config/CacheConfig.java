@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 public class CacheConfig {
 
-    @Value("{application.security.jwt.expiration}")
+    @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
     @Bean

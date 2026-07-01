@@ -5,12 +5,12 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import tsu.finalproject.feature.feed.entity.Quiz;
-import tsu.finalproject.feature.submission.entity.QuizAnswer;
 import tsu.finalproject.feature.feed.entity.QuizQuestion;
-import tsu.finalproject.feature.submission.entity.Submission;
 import tsu.finalproject.feature.feed.enums.QuestionType;
 import tsu.finalproject.feature.submission.dto.QuizAnswerRequest;
 import tsu.finalproject.feature.submission.dto.QuizSubmissionRequest;
+import tsu.finalproject.feature.submission.entity.QuizAnswer;
+import tsu.finalproject.feature.submission.entity.Submission;
 import tsu.finalproject.feature.submission.repository.QuizAnswerRepository;
 
 import java.math.BigDecimal;

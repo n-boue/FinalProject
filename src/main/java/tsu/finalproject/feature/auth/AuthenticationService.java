@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import tsu.finalproject.feature.auth.dto.*;
+import tsu.finalproject.feature.dashboard.AdminDashboardService;
 import tsu.finalproject.feature.user.UserRepository;
 import tsu.finalproject.feature.user.entity.Student;
 import tsu.finalproject.feature.user.entity.User;
@@ -27,12 +28,12 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AdminDashboardService adminDashboardService;
 
-    @Value("${university.security.allowed-student-domains}")
-    private List<String> allowedStudentDomains;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        boolean isDomainValid = allowedStudentDomains.stream()
+        List<String> allowedDomains = adminDashboardService.getAllowedStudentDomains();
+        boolean isDomainValid = allowedDomains.stream()
                                         .anyMatch(domain -> request.email().toLowerCase().endsWith(domain));
         Assert.isTrue(isDomainValid, "Student registration requires a valid university email domain.");
         Assert.isTrue(userRepository.findByEmail(request.email()).isEmpty(), "User with this email already exists.");

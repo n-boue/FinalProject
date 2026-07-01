@@ -1,4 +1,4 @@
-package tsu.finalproject.feature.feed.entity;
+package tsu.finalproject.feature.notification.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

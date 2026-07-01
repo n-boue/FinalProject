@@ -11,12 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 import tsu.finalproject.common.manager.DomainLookupService;
 import tsu.finalproject.feature.course.entity.Course;
 import tsu.finalproject.feature.course.entity.CourseSession;
+import tsu.finalproject.feature.course.security.CourseSecurityManager;
 import tsu.finalproject.feature.enrollment.dto.CourseRosterResponse;
 import tsu.finalproject.feature.enrollment.dto.EnrollmentRequest;
 import tsu.finalproject.feature.enrollment.dto.EnrollmentResponse;
 import tsu.finalproject.feature.enrollment.dto.FinalGradeRequest;
 import tsu.finalproject.feature.enrollment.enums.EnrollmentStatus;
-import tsu.finalproject.feature.course.security.CourseSecurityManager;
+import tsu.finalproject.feature.notification.NotificationDispatcher;
 import tsu.finalproject.feature.user.entity.Student;
 import tsu.finalproject.feature.user.entity.User;
 
@@ -33,6 +34,7 @@ public class EnrollmentService {
     private final CourseEnrollmentValidator enrollmentValidator;
     private final EnrollmentMapper enrollmentMapper;
     private final CourseSecurityManager securityManager;
+    private final NotificationDispatcher notificationDispatcher;
 
     @Transactional
     @NonNull
@@ -86,6 +88,14 @@ public class EnrollmentService {
         Assert.isTrue(enrollment.getStatus() != EnrollmentStatus.DROPPED);
 
         enrollment.setStatus(EnrollmentStatus.DROPPED);
+
+        notificationDispatcher.dispatchCourseNotification(
+                student.getId(),
+                enrollment.getCourse().getTitle(),
+                "You have been dropped from the course.",
+                "/users/me/enrollments"
+        );
+
         return enrollmentMapper.toResponse(enrollmentRepository.save(enrollment));
     }
 
@@ -120,14 +130,20 @@ public class EnrollmentService {
             @NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long enrollmentId, @NonNull FinalGradeRequest request) {
 
         User requestor = domainLookupService.getAuthor(requestorEmail);
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                                        .orElseThrow(() -> new EntityNotFoundException("Enrollment not found with ID: " + enrollmentId));
+        Enrollment enrollment = domainLookupService.getEnrollment(enrollmentId);
 
         Assert.isTrue(enrollment.getCourse().getId().equals(courseId), "Enrollment does not belong to this course.");
         securityManager.verifyProfessorAuthorization(requestor, enrollment.getCourse());
 
         enrollment.setFinalScore(request.finalScore());
         enrollment.setFinalGrade(request.finalGrade());
+
+        notificationDispatcher.dispatchCourseNotification(
+                enrollment.getStudent().getId(),
+                enrollment.getCourse().getTitle(),
+                "Your final grade has been posted: " + request.finalGrade(),
+                "/users/me/grades"
+        );
 
         return enrollmentMapper.toRosterResponse(enrollmentRepository.save(enrollment));
     }

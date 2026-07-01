@@ -6,9 +6,15 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tsu.finalproject.feature.submission.dto.*;
+import org.springframework.web.multipart.MultipartFile;
+import tsu.finalproject.feature.storage.dto.AttachmentResponse;
+import tsu.finalproject.feature.submission.dto.AssignmentSubmissionRequest;
+import tsu.finalproject.feature.submission.dto.GradeSubmissionRequest;
+import tsu.finalproject.feature.submission.dto.QuizSubmissionRequest;
+import tsu.finalproject.feature.submission.dto.SubmissionResponse;
 
 import java.security.Principal;
 
@@ -81,5 +87,32 @@ public class SubmissionController {
     ) {
         return submissionService.getSubmissionsForPost(
                 principal.getName(), courseId, postId, needsGrading, pageable);
+    }
+
+    @PostMapping(value = "/{submissionId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @NonNull
+    public AttachmentResponse addAttachmentToSubmission(
+            @PathVariable @NonNull Long courseId,
+            @PathVariable @NonNull Long postId,
+            @PathVariable @NonNull Long submissionId,
+            @RequestParam("file") @NonNull MultipartFile file,
+            Principal principal
+    ) {
+        return submissionService.addAttachmentToSubmission(principal.getName(), courseId, postId, submissionId, file);
+    }
+
+    @DeleteMapping("/{submissionId}/attachments/{attachmentId}")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeAttachmentFromSubmission(
+            @PathVariable @NonNull Long courseId,
+            @PathVariable @NonNull Long postId,
+            @PathVariable @NonNull Long submissionId,
+            @PathVariable @NonNull Long attachmentId,
+            Principal principal
+    ) {
+        submissionService.removeAttachmentFromSubmission(principal.getName(), courseId, postId, submissionId, attachmentId);
     }
 }

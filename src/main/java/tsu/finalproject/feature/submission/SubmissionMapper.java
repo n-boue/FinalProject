@@ -3,10 +3,10 @@ package tsu.finalproject.feature.submission;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import tsu.finalproject.feature.submission.entity.QuizAnswer;
-import tsu.finalproject.feature.submission.entity.Submission;
 import tsu.finalproject.feature.submission.dto.QuizAnswerResponse;
 import tsu.finalproject.feature.submission.dto.SubmissionResponse;
+import tsu.finalproject.feature.submission.entity.QuizAnswer;
+import tsu.finalproject.feature.submission.entity.Submission;
 
 import java.util.List;
 

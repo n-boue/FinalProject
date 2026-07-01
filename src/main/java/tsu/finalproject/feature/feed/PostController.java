@@ -6,10 +6,13 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tsu.finalproject.feature.feed.dto.*;
 import tsu.finalproject.feature.feed.enums.PostType;
+import tsu.finalproject.feature.storage.dto.AttachmentResponse;
 
 import java.security.Principal;
 
@@ -178,5 +181,29 @@ public class PostController {
         return postService.updateQuiz(principal.getName(), courseId, postId, request);
     }
 
+    @PostMapping(value = "/{postId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @NonNull
+    public AttachmentResponse addAttachmentToPost(
+            @PathVariable @NonNull Long courseId,
+            @PathVariable @NonNull Long postId,
+            @RequestParam("file") @NonNull MultipartFile file,
+            Principal principal
+    ) {
+        return postService.addAttachmentToPost(principal.getName(), courseId, postId, file);
+    }
+
+    @DeleteMapping("/{postId}/attachments/{attachmentId}")
+    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeAttachmentFromPost(
+            @PathVariable @NonNull Long courseId,
+            @PathVariable @NonNull Long postId,
+            @PathVariable @NonNull Long attachmentId,
+            Principal principal
+    ) {
+        postService.removeAttachmentFromPost(principal.getName(), courseId, postId, attachmentId);
+    }
 
 }
