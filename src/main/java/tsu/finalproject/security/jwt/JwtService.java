@@ -21,7 +21,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private Clock clock;
+    private final Clock clock;
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;

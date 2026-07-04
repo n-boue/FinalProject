@@ -27,7 +27,8 @@ public class DirectoryService {
 
     @NonNull
     public Page<ProfessorDirectoryResponse> searchProfessors(String search, @NonNull Pageable pageable) {
-        return userRepository.searchActiveProfessors(search, pageable)
+        String notNullSearch = search == null ? "" : search;
+        return userRepository.searchActiveProfessors(notNullSearch, pageable)
                        .map(user -> directoryMapper.toProfessorResponse((Professor) user));
     }
 
@@ -45,7 +46,8 @@ public class DirectoryService {
     @NonNull
     public Page<CourseResponse> searchCourses(
             String search, Long semesterId, @NonNull Pageable pageable) {
-        return courseRepository.searchActiveCourses(search, semesterId, pageable)
+        String notNullSearch = search == null ? "" : search;
+        return courseRepository.searchActiveCourses(notNullSearch, semesterId, pageable)
                        .map(courseMapper::toResponse);
     }
 

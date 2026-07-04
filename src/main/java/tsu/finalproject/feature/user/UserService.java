@@ -59,7 +59,8 @@ public class UserService {
     @Transactional(readOnly = true)
     @NonNull
     public Page<UserResponse> getAllUsers(Role role, String search, @NonNull Pageable pageable) {
-        return userRepository.findWithFilters(role, search, pageable)
+        String notNullSearch = search == null ? "" : search;
+        return userRepository.findWithFilters(role, notNullSearch, pageable)
                        .map(userMapper::toResponse);
     }
 
