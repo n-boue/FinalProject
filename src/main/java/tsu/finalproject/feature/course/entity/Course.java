@@ -11,8 +11,8 @@ import tsu.finalproject.feature.semester.Semester;
 import tsu.finalproject.feature.user.entity.Professor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "courses")
@@ -51,7 +51,7 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<CourseSection> sections = new ArrayList<>();
+    private Set<CourseSection> sections = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)
     @CreatedDate
