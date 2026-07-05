@@ -16,8 +16,8 @@ import tsu.finalproject.feature.storage.Attachment;
 import tsu.finalproject.feature.user.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "posts")
@@ -64,10 +64,10 @@ public abstract class Post {
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "attachment_id")
     )
-    private List<Attachment> attachments;
+    private Set<Attachment> attachments;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    private Set<Comment> comments;
 
     @Column(name = "created_at", updatable = false)
     @CreatedDate
@@ -80,8 +80,8 @@ public abstract class Post {
 
     public abstract static class PostBuilder<C extends Post, B extends PostBuilder<C, B>> {
         protected PostBuilder() {
-            this.attachments = new ArrayList<>();
-            this.comments = new ArrayList<>();
+            this.attachments = new HashSet<>();
+            this.comments = new HashSet<>();
             this.visibility = PostVisibility.FACULTY_ONLY;
         }
     }

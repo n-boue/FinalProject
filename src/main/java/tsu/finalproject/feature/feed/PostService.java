@@ -23,6 +23,8 @@ import tsu.finalproject.feature.storage.dto.AttachmentResponse;
 import tsu.finalproject.feature.user.entity.User;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -134,12 +136,12 @@ public class PostService {
                             .shuffleQuestions(request.shuffleQuestions())
                             .build();
 
-        List<QuizQuestion> quizQuestions = request.questions().stream()
+        Set<QuizQuestion> quizQuestions = request.questions().stream()
                                                    .map(qReq -> {
                                                        QuizQuestion question = postMapper.toEntity(qReq);
                                                        question.setQuiz(quiz);
                                                        return question;
-                                                   }).toList();
+                                                   }).collect(Collectors.toSet());
 
         quiz.setQuestions(quizQuestions);
 
@@ -301,12 +303,12 @@ public class PostService {
         attachmentManager.syncAttachments(quiz, request.attachmentKeys());
 
         quiz.getQuestions().clear();
-        List<QuizQuestion> newQuestions = request.questions().stream()
+        Set<QuizQuestion> newQuestions = request.questions().stream()
                                                   .map(qReq -> {
                                                       QuizQuestion question = postMapper.toEntity(qReq);
                                                       question.setQuiz(quiz);
                                                       return question;
-                                                  }).toList();
+                                                  }).collect(Collectors.toSet());
 
         quiz.getQuestions().addAll(newQuestions);
 

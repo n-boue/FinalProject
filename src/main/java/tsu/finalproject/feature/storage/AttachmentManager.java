@@ -12,6 +12,7 @@ import tsu.finalproject.feature.storage.event.FileDeletionEvent;
 import tsu.finalproject.feature.user.entity.User;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,12 +23,12 @@ public class AttachmentManager {
     private final ApplicationEventPublisher eventPublisher;
     private final FileStorageService fileStorageService;
 
-    public List<Attachment> fetchAttachments(List<String> objectKeys) {
-        if (objectKeys == null || objectKeys.isEmpty()) return List.of();
+    public Set<Attachment> fetchAttachments(List<String> objectKeys) {
+        if (objectKeys == null || objectKeys.isEmpty()) return Set.of();
         return objectKeys.stream()
                        .map(key -> attachmentRepository.findByObjectKey(key)
                                            .orElseThrow(() -> new EntityNotFoundException("Attachment not found for key: " + key)))
-                       .collect(Collectors.toList());
+                       .collect(Collectors.toSet());
     }
 
     @Transactional
@@ -58,11 +59,11 @@ public class AttachmentManager {
         if (requestedKeys == null) requestedKeys = List.of();
 
         List<String> finalRequestedKeys = requestedKeys;
-        List<Attachment> currentAttachments = post.getAttachments();
+        Set<Attachment> currentAttachments = post.getAttachments();
 
-        List<Attachment> attachmentsToRemove = currentAttachments.stream()
+        Set<Attachment> attachmentsToRemove = currentAttachments.stream()
                                                        .filter(att -> !finalRequestedKeys.contains(att.getObjectKey()))
-                                                       .toList();
+                                                       .collect(Collectors.toSet());
 
         attachmentsToRemove.forEach(this::publishDeletionEvent);
         currentAttachments.removeAll(attachmentsToRemove);

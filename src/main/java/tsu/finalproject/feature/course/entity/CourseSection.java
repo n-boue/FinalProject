@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import tsu.finalproject.feature.course.enums.SessionType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "course_sections")
@@ -31,5 +31,5 @@ public class CourseSection {
     // The available timeslots/groups for this specific section
     @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<CourseSession> sessions = new ArrayList<>();
+    private Set<CourseSession> sessions = new HashSet<>();
 }

@@ -8,8 +8,8 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @DiscriminatorValue("QUIZ")
@@ -33,5 +33,5 @@ public class Quiz extends Post {
 
     @Builder.Default
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuizQuestion> questions = new ArrayList<>();
+    private Set<QuizQuestion> questions = new HashSet<>();
 }

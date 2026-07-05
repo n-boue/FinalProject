@@ -11,8 +11,8 @@ import tsu.finalproject.feature.user.entity.Student;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -52,7 +52,7 @@ public class Submission {
             joinColumns = @JoinColumn(name = "submission_id"),
             inverseJoinColumns = @JoinColumn(name = "attachment_id")
     )
-    private List<Attachment> attachments = new ArrayList<>();
+    private Set<Attachment> attachments = new HashSet<>();
 
     @Column(precision = 5, scale = 2)
     private BigDecimal score;
