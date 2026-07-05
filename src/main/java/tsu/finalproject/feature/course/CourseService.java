@@ -50,7 +50,7 @@ public class CourseService {
         return courseMapper.toResponse(courseRepository.save(course));
     }
 
-    @CacheEvict(value = "courses", key = "#id")
+    @CacheEvict(value = {"courses", "course-details"}, key = "#id")
     @Transactional
     @NonNull
     public CourseResponse deactivateCourse(@NonNull Long id) {
@@ -89,7 +89,7 @@ public class CourseService {
                        .toList();
     }
 
-    @CacheEvict(value = "course-details", key = "#id")
+    @CacheEvict(value = {"courses", "course-details"}, key = "#id")
     @Transactional
     @NonNull
     public CourseResponse updateCourse(@NonNull Long id, @NonNull CourseRequest request) {
@@ -135,7 +135,7 @@ public class CourseService {
         if (courseCache != null) courseCache.evict(parentCourseId);
     }
 
-    @CacheEvict(value = "courses", key = "#courseId")
+    @CacheEvict(value = {"courses", "course-details"}, key = "#courseId")
     @Transactional
     @NonNull
     public CourseSectionResponse addSectionToCourse(@NonNull Long courseId, @NonNull CourseSectionRequest request) {
@@ -155,6 +155,8 @@ public class CourseService {
         CourseSection section = courseSectionRepository.findById(sectionId)
                                         .orElseThrow(() -> new EntityNotFoundException("Course Section not found with ID: " + sectionId));
 
+        Long parentCourseId = section.getCourse().getId();
+
         CourseSession session = CourseSession.builder()
                                         .section(section)
                                         .name(request.name())
@@ -168,6 +170,8 @@ public class CourseService {
 
         CourseSession savedSession = courseSessionRepository.save(session);
         evictProfessorSessionsCache(request.professorId());
+        Cache courseCache = cacheManager.getCache("course-details");
+        if (courseCache != null) courseCache.evict(parentCourseId);
 
         return courseMapper.toSessionResponse(savedSession);
     }
