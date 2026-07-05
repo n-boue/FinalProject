@@ -13,10 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tsu.finalproject.common.manager.DomainLookupService;
 import tsu.finalproject.feature.storage.FileStorageService;
 import tsu.finalproject.feature.storage.event.FileDeletionEvent;
-import tsu.finalproject.feature.user.dto.AdminCreateUserRequest;
-import tsu.finalproject.feature.user.dto.UpdateUserProfileRequest;
-import tsu.finalproject.feature.user.dto.UserResponse;
-import tsu.finalproject.feature.user.dto.UserStatusRequest;
+import tsu.finalproject.feature.user.dto.*;
 import tsu.finalproject.feature.user.entity.Professor;
 import tsu.finalproject.feature.user.entity.Student;
 import tsu.finalproject.feature.user.entity.User;
@@ -115,6 +112,27 @@ public class UserService {
         }
 
         return userMapper.toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    public void changePassword(@NonNull String email, @NonNull ChangePasswordRequest request) {
+        User user = domainLookupService.getUser(email);
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Incorrect current password.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void resetPasswordByAdmin(@NonNull Long userId, @NonNull AdminResetPasswordRequest request) {
+        User user = domainLookupService.getUser(userId);
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
     }
 
     private UserResponse applyUpdates(User user, UpdateUserProfileRequest request) {

@@ -1,19 +1,19 @@
 package tsu.finalproject.feature.user;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import tsu.finalproject.feature.user.dto.AdminCreateUserRequest;
-import tsu.finalproject.feature.user.dto.UpdateUserProfileRequest;
-import tsu.finalproject.feature.user.dto.UserResponse;
-import tsu.finalproject.feature.user.dto.UserStatusRequest;
+import tsu.finalproject.feature.user.dto.*;
 import tsu.finalproject.feature.user.enums.Role;
+import tsu.finalproject.security.jwt.TokenBlacklistService;
 
 import java.security.Principal;
 
@@ -23,6 +23,7 @@ import java.security.Principal;
 public class UserController {
 
     private final UserService userService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @GetMapping("/me")
     @NonNull
@@ -94,6 +95,32 @@ public class UserController {
             @RequestBody @Valid UpdateUserProfileRequest request
     ) {
         return userService.updateUserById(id, request);
+    }
+
+    @PutMapping("/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeMyPassword(
+            HttpServletRequest servletRequest,
+            @RequestBody @Valid ChangePasswordRequest request,
+            Principal principal
+    ) {
+        userService.changePassword(principal.getName(), request);
+
+        final String authHeader = servletRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.substring(7);
+            tokenBlacklistService.blacklistToken(jwt);
+        }
+    }
+
+    @PutMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetUserPassword(
+            @PathVariable @NonNull Long id,
+            @RequestBody @Valid AdminResetPasswordRequest request
+    ) {
+        userService.resetPasswordByAdmin(id, request);
     }
 }
 
