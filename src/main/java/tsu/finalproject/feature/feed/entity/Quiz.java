@@ -28,8 +28,8 @@ public class Quiz extends Post {
     @Column(name = "passing_score")
     private Integer passingScore;
 
-    @Column(name = "shuffle_questions", nullable = false)
-    private boolean shuffleQuestions;
+    @Column(name = "shuffle_questions")
+    private Boolean shuffleQuestions;
 
     @Builder.Default
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)

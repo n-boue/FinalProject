@@ -7,12 +7,14 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import tsu.finalproject.feature.semester.dto.SemesterRequest;
 import tsu.finalproject.feature.semester.dto.SemesterResponse;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class SemesterService {
 
     private final SemesterRepository semesterRepository;
     private final SemesterMapper semesterMapper;
+    private final Clock clock;
 
     @CacheEvict(value = {"semesters", "active-semesters"}, allEntries = true)
     @Transactional
@@ -34,13 +37,16 @@ public class SemesterService {
         Assert.isTrue(!request.enrollmentStartDate().isAfter(request.enrollmentEndDate()),
                 "Enrollment start date must be before the enrollment end date.");
 
+        LocalDate today = LocalDate.now(clock);
+        boolean isCurrent = !today.isBefore(request.startDate()) && !today.isAfter(request.endDate());
+
         Semester semester = Semester.builder()
                                     .name(request.name())
                                     .startDate(request.startDate())
                                     .endDate(request.endDate())
                                     .enrollmentStartDate(request.enrollmentStartDate())
                                     .enrollmentEndDate(request.enrollmentEndDate())
-                                    .isCurrent(false)
+                                    .isCurrent(isCurrent)
                                     .build();
 
         return semesterMapper.toResponse(semesterRepository.save(semester));
@@ -95,6 +101,16 @@ public class SemesterService {
         semester.setEnrollmentStartDate(request.enrollmentStartDate());
         semester.setEnrollmentEndDate(request.enrollmentEndDate());
 
+        LocalDate today = LocalDate.now(clock);
+        semester.setCurrent(!today.isBefore(request.startDate()) && !today.isAfter(request.endDate()));
+
         return semesterMapper.toResponse(semesterRepository.save(semester));
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    @CacheEvict(value = {"semesters", "active-semesters"}, allEntries = true)
+    public void runDailySemesterSync() {
+        semesterRepository.syncAllSemesterStatuses(LocalDate.now(clock));
     }
 }
