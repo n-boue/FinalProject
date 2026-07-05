@@ -171,8 +171,8 @@ public class UserDashboardService {
                            .collect(Collectors.toList());
 
         } else if (user instanceof Professor professor) {
-            return courseRepository.findByLeadProfessorIdAndSemesterId(
-                            professor.getId(), null, Pageable.unpaged())
+            return courseRepository.findCoursesByProfessorInvolvement(
+                            professor.getId(), Pageable.unpaged())
                            .map(courseMapper::toResponse)
                            .toList();
         }
