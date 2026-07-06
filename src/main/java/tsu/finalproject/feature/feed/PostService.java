@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -360,6 +361,30 @@ public class PostService {
 
         post.getAttachments().remove(attachment);
         attachmentManager.publishDeletionEvent(attachment);
+    }
+
+    @Transactional(readOnly = true)
+    @NonNull
+    public PostResponse getPostById(@NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long postId) {
+        Post post = domainLookupService.getPost(postId);
+        securityManager.verifyPostBelongsToCourse(post, courseId);
+
+        var course = domainLookupService.getCourse(courseId);
+        var requestor = domainLookupService.getAuthor(requestorEmail);
+
+        CourseSecurityManager.AccessLevel access = securityManager.determineAccessLevel(requestor, course);
+
+        boolean canView = switch (access) {
+            case FACULTY -> true;
+            case ENROLLED -> post.getVisibility() != PostVisibility.FACULTY_ONLY;
+            case GUEST -> post.getVisibility() == PostVisibility.PUBLIC;
+        };
+
+        if (!canView) {
+            throw new AccessDeniedException("You do not have permission to view this post.");
+        }
+
+        return postMapper.toResponse(post);
     }
 
 

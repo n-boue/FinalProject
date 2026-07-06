@@ -44,7 +44,7 @@ public class PostController {
     }
 
     @PostMapping("/announcements")
-    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @NonNull
     public PostResponse createAnnouncement(
@@ -66,7 +66,7 @@ public class PostController {
     }
 
     @PostMapping("/materials")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @ResponseStatus(HttpStatus.CREATED)
     @NonNull
     public PostResponse createMaterial(
@@ -88,7 +88,7 @@ public class PostController {
     }
 
     @PostMapping("/assignments")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @ResponseStatus(HttpStatus.CREATED)
     @NonNull
     public PostResponse createAssignment(
@@ -110,7 +110,7 @@ public class PostController {
     }
 
     @PostMapping("/quizzes")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @ResponseStatus(HttpStatus.CREATED)
     @NonNull
     public PostResponse createQuiz(
@@ -123,7 +123,7 @@ public class PostController {
 
 
     @DeleteMapping("/{postId}")
-    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(
             @PathVariable @NonNull Long courseId,
@@ -134,7 +134,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}/announcements")
-    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @NonNull
     public PostResponse updateAnnouncement(
             @PathVariable @NonNull Long courseId,
@@ -146,7 +146,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}/materials")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @NonNull
     public PostResponse updateMaterial(
             @PathVariable @NonNull Long courseId,
@@ -158,7 +158,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}/assignments")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @NonNull
     public PostResponse updateAssignment(
             @PathVariable @NonNull Long courseId,
@@ -170,7 +170,7 @@ public class PostController {
     }
 
     @PutMapping("/{postId}/quizzes")
-    @PreAuthorize("hasRole('PROFESSOR')")
+    @PreAuthorize("hasRole('PROF')")
     @NonNull
     public PostResponse updateQuiz(
             @PathVariable @NonNull Long courseId,
@@ -182,7 +182,7 @@ public class PostController {
     }
 
     @PostMapping(value = "/{postId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @NonNull
     public AttachmentResponse addAttachmentToPost(
@@ -195,7 +195,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}/attachments/{attachmentId}")
-    @PreAuthorize("hasRole('PROFESSOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PROF') or hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeAttachmentFromPost(
             @PathVariable @NonNull Long courseId,
@@ -204,6 +204,16 @@ public class PostController {
             Principal principal
     ) {
         postService.removeAttachmentFromPost(principal.getName(), courseId, postId, attachmentId);
+    }
+
+    @GetMapping("/{postId}")
+    @NonNull
+    public PostResponse getPost(
+            @PathVariable @NonNull Long courseId,
+            @PathVariable @NonNull Long postId,
+            Principal principal
+    ) {
+        return postService.getPostById(principal.getName(), courseId, postId);
     }
 
 }
