@@ -138,11 +138,11 @@ public class PostService {
                             .build();
 
         Set<QuizQuestion> quizQuestions = request.questions().stream()
-                                                   .map(qReq -> {
-                                                       QuizQuestion question = postMapper.toEntity(qReq);
-                                                       question.setQuiz(quiz);
-                                                       return question;
-                                                   }).collect(Collectors.toSet());
+                                                  .map(qReq -> {
+                                                      QuizQuestion question = postMapper.toEntity(qReq);
+                                                      question.setQuiz(quiz);
+                                                      return question;
+                                                  }).collect(Collectors.toSet());
 
         quiz.setQuestions(quizQuestions);
 
@@ -305,11 +305,11 @@ public class PostService {
 
         quiz.getQuestions().clear();
         Set<QuizQuestion> newQuestions = request.questions().stream()
-                                                  .map(qReq -> {
-                                                      QuizQuestion question = postMapper.toEntity(qReq);
-                                                      question.setQuiz(quiz);
-                                                      return question;
-                                                  }).collect(Collectors.toSet());
+                                                 .map(qReq -> {
+                                                     QuizQuestion question = postMapper.toEntity(qReq);
+                                                     question.setQuiz(quiz);
+                                                     return question;
+                                                 }).collect(Collectors.toSet());
 
         quiz.getQuestions().addAll(newQuestions);
 

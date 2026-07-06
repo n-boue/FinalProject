@@ -3,6 +3,7 @@ package tsu.finalproject.common.manager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tsu.finalproject.feature.course.entity.Course;
@@ -91,7 +92,7 @@ public class DomainLookupService {
                             .orElseThrow(() -> new EntityNotFoundException("User not found for email: " + email));
 
         if (!(user instanceof Student student)) {
-            throw new IllegalArgumentException("Only students can perform this action.");
+            throw new AccessDeniedException("Only students can perform this action.");
         }
         return student;
     }

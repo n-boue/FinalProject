@@ -62,8 +62,8 @@ public class AttachmentManager {
         Set<Attachment> currentAttachments = post.getAttachments();
 
         Set<Attachment> attachmentsToRemove = currentAttachments.stream()
-                                                       .filter(att -> !finalRequestedKeys.contains(att.getObjectKey()))
-                                                       .collect(Collectors.toSet());
+                                                      .filter(att -> !finalRequestedKeys.contains(att.getObjectKey()))
+                                                      .collect(Collectors.toSet());
 
         attachmentsToRemove.forEach(this::publishDeletionEvent);
         currentAttachments.removeAll(attachmentsToRemove);
