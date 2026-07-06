@@ -25,6 +25,7 @@ public record PostResponse(
         @Nullable LocalDateTime dueDate,
         @Nullable Integer maxPoints,
         @Nullable Integer timeLimitMinutes,
-        @Nullable Integer passingScore
+        @Nullable Integer passingScore,
+        @Nullable List<QuizQuestionResponse> questions
 ) {
 }
