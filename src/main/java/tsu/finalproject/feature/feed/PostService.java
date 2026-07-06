@@ -366,13 +366,13 @@ public class PostService {
     @Transactional(readOnly = true)
     @NonNull
     public PostResponse getPostById(@NonNull String requestorEmail, @NonNull Long courseId, @NonNull Long postId) {
-        Post post = domainLookupService.getPost(postId);
-        securityManager.verifyPostBelongsToCourse(post, courseId);
-
         var course = domainLookupService.getCourse(courseId);
         var requestor = domainLookupService.getAuthor(requestorEmail);
 
         CourseSecurityManager.AccessLevel access = securityManager.determineAccessLevel(requestor, course);
+
+        Post post = domainLookupService.getPost(postId);
+        securityManager.verifyPostBelongsToCourse(post, courseId);
 
         boolean canView = switch (access) {
             case FACULTY -> true;
